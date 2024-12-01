@@ -1,6 +1,12 @@
 import express from 'express';
 import multer from 'multer'
-import { listarPosts, postarNovoPost, uploadImagem } from '../controllers/postsController.js';
+import { listarPosts, postarNovoPost, uploadImagem, atualizarNovoPost } from '../controllers/postsController.js';
+import cors from 'cors';
+
+const corsOptions = {
+    origin:"http://localhost:8000",
+    optionsSuccessStatus: 200,
+}
 
 // Rodar esse bloco em ambiente Windows
 // O código abaixo configura o armazenamento do multer em um diretório específico
@@ -25,7 +31,7 @@ const upload = multer({ dest: "./uploads"}); // Linux ou Mac rodar somente essa 
 // Define as rotas da aplicação
 const routes = (app) => {
     app.use(express.json()); // Configura o middleware para interpretar o corpo das requisições como JSON.
-    
+    app.use(cors(corsOptions));
     // Define a rota GET "/posts" que retorna todos os posts do banco de dados.
     app.get("/posts", listarPosts); 
     
@@ -35,6 +41,8 @@ const routes = (app) => {
     // Rota para fazer o upload de uma imagem, usando o middleware multer.
     // A chave 'imagem' deve corresponder ao nome do campo do formulário no Postman ou no frontend.
     app.post('/upload', upload.single("imagem"), uploadImagem)
-}
+
+    app.put("/upload/:id", atualizarNovoPost)
+};
 
 export default routes;

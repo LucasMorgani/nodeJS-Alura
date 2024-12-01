@@ -1,5 +1,6 @@
-import {getTodosPosts, criarPost} from "../models/postsModel.js";
+import {getTodosPosts, criarPost, atualizarPost} from "../models/postsModel.js";
 import fs from 'fs'
+import gerarDescricaoComGemini from "../services/geminiService.js";
 
 // Função para listar todos os posts do banco de dados
 export async function listarPosts (req, res) {
@@ -9,8 +10,7 @@ export async function listarPosts (req, res) {
 
 // Função para criar um novo post
 export async function postarNovoPost(req, res) { 
-    const novoPost = req.body; // Obtém o novo post a partir do corpo da requisição.
-    
+    const novoPost = req.body; // Obtém o novo post a partir do corpo da requisição. 
     try{
         // Tenta criar um novo post no banco de dados.
         const postCriado = await criarPost(novoPost);
@@ -43,6 +43,28 @@ export async function uploadImagem (req, res) {
         res.status(200).json(postCriado); // Retorna o post criado com status HTTP 200.
     } catch(erro) {
         console.error(erro.message); // Log de erro caso haja falha na criação do post ou upload da imagem.
+        res.status(500).json({"Erro":"Falha na requisição"}); // Retorna erro 500 com uma mensagem de falha.
+    }
+}
+
+//
+export async function atualizarNovoPost(req, res) { 
+    const id = req.params.id; // Obtém o novo post a partir do corpo da requisição.
+    const urlImagem = `http://localhost:3000/${id}.png`
+    try{
+        const imageBuffer = fs.readFileSync(`uploads/${id}.png`)
+        const descricao = await gerarDescricaoComGemini(imageBuffer)
+
+        const post = {
+            imgUrl: urlImagem,
+            descricao: descricao,
+            alt: req.body.alt
+        }
+
+        const postCriado = await atualizarPost(id, post); // Tenta criar um novo post no banco de dados.
+        res.status(200).json(postCriado); // Se criar com sucesso, retorna o post criado com status HTTP 200.
+    } catch(erro) {
+        console.error(erro.message); // Log de erro caso haja falha na criação do post.
         res.status(500).json({"Erro":"Falha na requisição"}); // Retorna erro 500 com uma mensagem de falha.
     }
 }
