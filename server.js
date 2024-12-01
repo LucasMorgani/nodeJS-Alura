@@ -1,4 +1,6 @@
 import express from 'express';
+import conectarAoBanco from './src/config/dbConfig.js';
+const conexao = await conectarAoBanco(process.env.STRING_CONEXAO)
 
 const posts = [
     {
@@ -41,13 +43,24 @@ app.listen(3000, () => {
     console.log("Servidor escutando...");
 });
 
-function buscarPostPorID(id){
-    return posts.findIndex((post) => {
-        return post.id === Number(id)
-    });
+async function getTodosPosts(params){
+    const db = conexao.db('imersao-instabyte')
+    const colecao = db.collection('posts')
+    return colecao.find().toArray()
 }
 
-app.get("/posts/:id", (req, res) => {
-    const index = buscarPostPorID(req.params.id)
-    res.status(200).json(posts[index]);
-});
+app.get("/posts", async (req, res) => {
+        const posts = await getTodosPosts()
+        res.status(200).json(posts);
+    });
+
+//app.get("/posts/:id", (req, res) => {
+//  const index = buscarPostPorID(req.params.id)
+//    res.status(200).json();
+//});
+
+//function buscarPostPorID(id){
+//    return posts.findIndex((post) => {
+//        return post.id === Number(id)
+//    });
+//}
